@@ -25,11 +25,11 @@ class ChatServer():
             if(parent is not None):
                 parent.lb2.setText(parent.lb2.text() + '\n\n' + str(e))
             sys.exit(1)
-        
+
         print('..listening..')
         if(parent is not None):
             parent.lb2.setText(parent.lb2.text() + '\n\n..listening..')
-        
+
         while 1:
             connectionSock, client_addr = serverSock.accept()
             if(connectionSock):
@@ -49,11 +49,16 @@ class ChatServer():
                 parent.lb2.setText(parent.lb2.text() + '\n' + request)
 
             if(request == 'exit'):
+                _connectionSock.send(('[exit]').encode('utf-8'))
                 _connectionSock.close()
-                self.connection_pool[int(request.split(':')[1])] = None
                 print('connection closed')
                 if(parent is not None):
                     parent.lb2.setText(parent.lb2.text() + '\n' + 'connection closed')
+                break
+            if(request == ''):
+                _connectionSock.send(('[exit]').encode('utf-8'))
+                _connectionSock.close()
+                print('connection closed')
                 break
             if(request.split(':')[0] == 'user_id'): # first meet
                 if self.connection_pool[int(request.split(':')[1])] == None:
@@ -79,7 +84,7 @@ class ChatServer():
                     break
                 else:
                     self.connection_pool[int(request.split('#', 1)[0])].send(("\n[user" + str(user) + "]: " + request.split('#')[1]+"\n>>>").encode('utf-8'))
-    
+
     def render_msg(self):
         return self._render_msg
 
