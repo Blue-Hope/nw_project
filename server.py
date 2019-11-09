@@ -57,7 +57,7 @@ class ChatServer():
                     user = int(request.split(':')[1])
                     username = int(request.split(':')[2])
                     self.connection_pool[user] = _connectionSock
-                    connectionSock.send("user[" + username + "] is connected")
+                    _connectionSock.send(("user[" + username + "] is connected").encode('utf-8'))
                     # _connectionSock.send(('connected user ' + request.split(':')[1]).encode('utf-8'))
                 else:
                     _connectionSock.send('[error] invalid access detected'.encode('utf-8'))
