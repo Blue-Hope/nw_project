@@ -17,7 +17,7 @@ class ChatServer():
         try:
             serverSock = socket(AF_INET, SOCK_STREAM) # TCP
             serverSock.bind(('', args.port)) # localhost
-            serverSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            serverSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 
             serverSock.listen(args.backlog)
         except OSError as e:
