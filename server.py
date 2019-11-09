@@ -38,10 +38,10 @@ class ChatServer():
 
     def connection_thread(self, parent, _connectionSock, _client_addr, args):
         user = None
+        username = ""
         while 1:
             request = _connectionSock.recv(args.max_data_recv).decode('utf-8')
             print(request)
-
             if(request == 'exit'):
                 _connectionSock.send(('[exit]').encode('utf-8'))
                 _connectionSock.close()
@@ -55,7 +55,9 @@ class ChatServer():
             if(request.split(':')[0] == 'user_id'): # first meet
                 if self.connection_pool[int(request.split(':')[1])] == None:
                     user = int(request.split(':')[1])
+                    username = int(request.split(':')[2])
                     self.connection_pool[user] = _connectionSock
+                    connectionSock.send("user[" + username + "] is connected")
                     # _connectionSock.send(('connected user ' + request.split(':')[1]).encode('utf-8'))
                 else:
                     _connectionSock.send('[error] invalid access detected'.encode('utf-8'))
