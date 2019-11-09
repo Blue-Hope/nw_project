@@ -22,20 +22,14 @@ class ChatServer():
             if serverSock:
                 serverSock.close()
             print(e)
-            if(parent is not None):
-                parent.lb2.setText(parent.lb2.text() + '\n\n' + str(e))
             sys.exit(1)
 
         print('..listening..')
-        if(parent is not None):
-            parent.lb2.setText(parent.lb2.text() + '\n\n..listening..')
 
         while 1:
             connectionSock, client_addr = serverSock.accept()
             if(connectionSock):
                 print("accepted")
-                if(parent is not None):
-                    parent.lb2.setText(parent.lb2.text() + '\n..accepted..')
                 _thread.start_new_thread(self.connection_thread, (parent, connectionSock, client_addr, args))
 
         serverSock.close()
@@ -45,15 +39,11 @@ class ChatServer():
         while 1:
             request = _connectionSock.recv(args.max_data_recv).decode('utf-8')
             print(request)
-            if(parent is not None):
-                parent.lb2.setText(parent.lb2.text() + '\n' + request)
 
             if(request == 'exit'):
                 _connectionSock.send(('[exit]').encode('utf-8'))
                 _connectionSock.close()
                 print('connection closed')
-                if(parent is not None):
-                    parent.lb2.setText(parent.lb2.text() + '\n' + 'connection closed')
                 break
             if(request == ''):
                 _connectionSock.send(('[exit]').encode('utf-8'))
@@ -70,8 +60,6 @@ class ChatServer():
                     _connectionSock.close()
                     self.connection_pool[int(request.split(':')[1])] = None
                     print('connection closed')
-                    if(parent is not None):
-                        parent.lb2.setText(parent.lb2.text() + '\n' + 'connection closed')
                     break
             else:
                 if(self.connection_pool[int(request.split('#', 1)[0])] == None):
@@ -79,11 +67,9 @@ class ChatServer():
                     _connectionSock.close()
                     self.connection_pool[user] = None
                     print('connection closed')
-                    if(parent is not None):
-                        parent.lb2.setText(parent.lb2.text() + '\n' + 'connection closed')
                     break
                 else:
-                    self.connection_pool[int(request.split('#', 1)[0])].send(("\n[user" + str(user) + "]: " + request.split('#')[1]+"\n>>>").encode('utf-8'))
+                    self.connection_pool[int(request.split('#', 1)[0])].send(("\n[user" + str(user) + "]: " + request.split('#')[1]).encode('utf-8'))
 
     def render_msg(self):
         return self._render_msg
