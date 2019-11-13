@@ -15,12 +15,16 @@ class ChatClient():
 
         try:
             clientSock = socket(AF_INET, SOCK_STREAM) # TCP
-            clientSock.connect(('13.125.249.160', args.port)) # localhost
+            clientSock.connect(('127.0.0.1', args.port)) # localhost
             clientSock.send(('user_id:' + str(args.user) + ':' + args.username).encode('utf-8'))
             # clientSock.recv(args.max_data_recv).decode('utf-8')
 
+            udpSock = socket(AF_INET, SOCK_DGRAM)
+            udpSock.bind(('', args.port + args.user))
+
             _thread.start_new_thread(self.send_thread, (parent, clientSock, args))
             _thread.start_new_thread(self.recv_thread, (parent, clientSock, args))
+            _thread.start_new_thread(self.udp_thread, (parent, udpSock, args))
 
             while True:
                 time.sleep(1)
@@ -36,6 +40,8 @@ class ChatClient():
                 if input_str == 'exit':
                     _clientSock.send('exit'.encode('utf-8'))
                     break
+                if input_str == 'list':
+                    _clientSock.send('list'.encode('utf-8'))
                 else:
                     _clientSock.send((input_str.split(' ')[0] + "#" + input_str.split(' ', 1)[1]).encode('utf-8'))
             else:
@@ -43,6 +49,8 @@ class ChatClient():
                 if input_str == 'exit':
                     _clientSock.send('exit'.encode('utf-8'))
                     break
+                if input_str == 'list':
+                    _clientSock.send('list'.encode('utf-8'))
                 else:
                     _clientSock.send((input_str.split(' ')[0] + "#" + input_str.split(' ', 1)[1]).encode('utf-8'))
 
@@ -64,6 +72,13 @@ class ChatClient():
 
         print('connection closed')
         _clientSock.close()
+
+    def udp_thread(self, parent, _udpSock, args):
+        while True:
+            data, address = _udpSock.recvfrom(args.max_data_recv)
+            if(parent):
+                parent.textBrowser.append(data.decode('utf-8'))
+
 
 
 if __name__ == "__main__":
