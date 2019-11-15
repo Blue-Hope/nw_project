@@ -30,7 +30,7 @@ class ChatClient():
             while(True):
                 if(udpSockAvailable):
                     udpSock = socket(AF_INET, SOCK_DGRAM)
-                    udpSock.bind(('', args.port + udpPort))
+                    udpSock.bind(('', args.port + self.udpPort))
                     _thread.start_new_thread(self.udp_thread, (parent, udpSock, args))
                     break
 
@@ -98,8 +98,8 @@ class ChatClient():
             else:
                 if data.find('###CONNECTSUCCESS###') != -1:
                     self.printmsg(parent, ('[SYSTEM] ' + args.username + ' is successfully connected'))
-                    udpPort = int(data.split('###CONNECTSUCCESS###')[1])
-                    udpPortAvailable = True
+                    self.udpPort = int(data.split('###CONNECTSUCCESS###')[1])
+                    self.udpPortAvailable = True
                 else:
                     self.printmsg(parent, data)
 
