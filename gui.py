@@ -88,6 +88,7 @@ class GUIWindow(object):
     
     def operateClientThread(self):
         args.user = int(self.user_id)
+        args.cli = 0
         if(self.textEdit.toPlainText() == ''):
             self.statusbar.showMessage("set username")
         else:

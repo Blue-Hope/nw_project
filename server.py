@@ -5,6 +5,7 @@ import argparse
 
 class ChatServer():
     connection_pool = {}
+    addr_pool = {}
     _render_msg = "init"
 
     def __init__(self, parent, args):
@@ -13,6 +14,7 @@ class ChatServer():
     def main(self, parent, args):
         try:
             serverSock = socket(AF_INET, SOCK_STREAM) # TCP
+            udpSock = socket(AF_INET, SOCK_DGRAM) # UDP
             serverSock.bind(('', args.port)) # localhost
             serverSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 
@@ -28,17 +30,19 @@ class ChatServer():
         while 1:
             connectionSock, client_addr = serverSock.accept()
             if(connectionSock):
-                _thread.start_new_thread(self.connection_thread, (parent, connectionSock, client_addr, args))
+                _thread.start_new_thread(self.connection_thread, (parent, udpSock, connectionSock, client_addr, args))                
 
         serverSock.close()
+        udpSock.close()
 
-    def connection_thread(self, parent, _connectionSock, _client_addr, args):
+    def connection_thread(self, parent, _udpSock, _connectionSock, _client_addr, args):
         username = ""
         while True:
             request = _connectionSock.recv(args.max_data_recv).decode('utf-8')
 
             if(request != ''):
                 print(username, request)
+
             if(request == '###EXIT###'): # client exit handling
                 _connectionSock.close()
                 self.connection_pool.pop(username)
@@ -49,6 +53,8 @@ class ChatServer():
                 if request not in self.connection_pool:
                     username = request
                     self.connection_pool[username] = _connectionSock
+                    self.addr_pool[username] = (_client_addr[0], args.port)
+                    self.show_list(_udpSock, args) # show all list of user
                     _connectionSock.send(('###CONNECTSUCCESS###').encode('utf-8'))
                 else:
                     _connectionSock.send('###ERROR###the username already used by someone'.encode('utf-8'))
@@ -65,6 +71,25 @@ class ChatServer():
 
     def render_msg(self):
         return self._render_msg
+    
+    def show_list(self, _udpSock, args):
+        on_list = '----------- user in -----------\n'
+
+        for i, _user_name in enumerate(addr_pool):
+            on_list += "[SYSTEM] " + _user_name + ' logged in\n'
+
+        on_list += '---------------------------------\n'
+
+        for i, _user_name in enumerate(addr_pool):
+            try:
+                # Send data
+                _udpSock.sendto(on_list.encode('utf-8'), self.addr_list[username])
+
+            except OSError as e:
+                if _udpSock:
+                    _udpSock.close()
+                print(e)
+                sys.exit(1)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
