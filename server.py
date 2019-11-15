@@ -56,6 +56,7 @@ class ChatServer():
                     self.connection_pool[username] = _connectionSock
                     self.addr_pool[username] = (_client_addr[0], args.port + self.port_numbering)
                     _connectionSock.send(('###CONNECTSUCCESS###' + str(self.port_numbering)).encode('utf-8'))
+                    print(args.port + self.port_numbering)
                     self.port_numbering += 1
                     self.show_list(_udpSock, username, args) # show all list of user
                 else:
