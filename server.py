@@ -79,11 +79,11 @@ class ChatServer():
             # self.printmsg(parent, data.decode())
             if(data.decode() == "###LIST###"):
                 try:
-                    on_list = '\n[SYSTEM] USER LIST -------------------\n'
+                    on_list = '\n[SYSTEM] USER LIST -----------\n'
                     for _user_name in self.connection_pool:
                         on_list += '[' + _user_name + '] logged in\n'
-                        on_list += '---------------------------------'
-                        _udpSock.sendto(on_list.encode('utf-8'), address)
+                    on_list += '---------------------------------'
+                    _udpSock.sendto(on_list.encode('utf-8'), address)
                 except OSError as e:
                     if _udpSock:
                         _udpSock.close()
