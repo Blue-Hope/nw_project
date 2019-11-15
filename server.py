@@ -75,13 +75,14 @@ class ChatServer():
     def udp_thread(self, _udpSock, args):
         while True:
             data, address = _udpSock.recvfrom(args.max_data_recv)
+            print(data.decode())
             # self.printmsg(parent, data.decode())
             if(data.decode() == "###LIST###"):
                 try:
-                    on_list = '------------ user in ------------\n'
+                    on_list = '\n[SYSTEM] USER LIST -------------------\n'
                     for _user_name in self.connection_pool:
                         on_list += '[' + _user_name + '] logged in\n'
-                        on_list += '---------------------------------\n'
+                        on_list += '---------------------------------'
                         _udpSock.sendto(on_list.encode('utf-8'), address)
                 except OSError as e:
                     if _udpSock:

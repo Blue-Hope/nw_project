@@ -108,12 +108,15 @@ class GUIWindow(object):
             self.textEdit_2.setText('')
         
     def listLookUp(self):
-        udpSock = socket(AF_INET, SOCK_DGRAM) # UDP
-        destinationAddr = '13.125.249.160'
-        data = "###LIST###".encode('utf-8')
-        udpSock.sendto(data, (destinationAddr, args.port + 1))
-        data, address = udpSock.recvfrom(args.max_data_recv)
-        self.textBrowser.append(data)
+        try:
+            udpSock = socket(AF_INET, SOCK_DGRAM) # UDP
+            destinationAddr = '13.125.249.160'
+            data = "###LIST###".encode('utf-8')
+            udpSock.sendto(data, (destinationAddr, args.port + 1))
+            data, address = udpSock.recvfrom(args.max_data_recv)
+            self.textBrowser.append(data.decode())
+        except OSError as e:
+            print(e)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

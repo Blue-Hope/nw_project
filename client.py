@@ -20,7 +20,7 @@ class ChatClient():
                 destinationAddr = '127.0.0.1'
             else:
                 destinationAddr = '13.125.249.160'
-
+            
             clientSock = socket(AF_INET, SOCK_STREAM) # TCP
             clientSock.connect((destinationAddr, args.port)) # localhost
             clientSock.send(('###STARTCONNECT###' + args.username).encode('utf-8'))
@@ -41,7 +41,9 @@ class ChatClient():
                 sys.exit()
                 
         except OSError as e:
-            print(e)
+            if(str(e).find("[Errno 61]") != -1):
+                data = "[SYSTEM] check if server is turned on"
+                self.printmsg(parent, data)
 
 
     def send_thread(self, parent, _clientSock, args):
