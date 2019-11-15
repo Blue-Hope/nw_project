@@ -28,7 +28,7 @@ class ChatClient():
             clientSock.send(('###STARTCONNECT###' + args.username).encode('utf-8'))
 
             while(True):
-                if(udpSockAvailable):
+                if(self.udpPortAvailable):
                     udpSock = socket(AF_INET, SOCK_DGRAM)
                     udpSock.bind(('', args.port + self.udpPort))
                     _thread.start_new_thread(self.udp_thread, (parent, udpSock, args))

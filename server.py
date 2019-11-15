@@ -83,7 +83,7 @@ class ChatServer():
         for i, _user_name in enumerate(self.addr_pool):
             try:
                 # Send data
-                _udpSock.sendto(on_list.encode('utf-8'), self.addr_list[username])
+                _udpSock.sendto(on_list.encode('utf-8'), self.addr_pool[username])
 
             except OSError as e:
                 if _udpSock:
