@@ -10,6 +10,10 @@ class ChatServer():
     def __init__(self, parent, args):
         self.main(parent, args)
 
+    def __del__(self):
+        for username self.connection_pool:
+            self.connection_pool[username].close()
+
     def main(self, parent, args):
         try:
             serverSock = socket(AF_INET, SOCK_STREAM) # TCP
