@@ -80,7 +80,8 @@ class ChatServer():
         on_list += "[SYSTEM] " + _entered_user_name + ' logged in\n'
         on_list += '---------------------------------\n'
 
-        for i, _user_name in enumerate(self.addr_pool):
+        for _user_name in self.addr_pool:
+            print(_user_name)
             try:
                 # Send data
                 _udpSock.sendto(on_list.encode('utf-8'), self.addr_pool[_user_name])
