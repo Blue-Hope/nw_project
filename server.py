@@ -28,7 +28,7 @@ class ChatServer():
 
         print('..listening..')
 
-        _thread.start_new_thread(self.udp_thread, (parent, udpSock, args))
+        _thread.start_new_thread(self.udp_thread, (udpSock, args))
         while 1:
             connectionSock, client_addr = serverSock.accept()
             if(connectionSock):
