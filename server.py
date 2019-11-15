@@ -57,7 +57,7 @@ class ChatServer():
                     self.addr_pool[username] = (_client_addr[0], args.port)
                     _connectionSock.send(('###CONNECTSUCCESS###' + str(self.port_numbering)).encode('utf-8'))
                     self.port_numbering += 1
-                    self.show_list(_udpSock, args) # show all list of user
+                    self.show_list(_udpSock, username, args) # show all list of user
                 else:
                     _connectionSock.send('###ERROR###the username already used by someone'.encode('utf-8'))
                     print('connection closed')
@@ -74,12 +74,9 @@ class ChatServer():
     def render_msg(self):
         return self._render_msg
     
-    def show_list(self, _udpSock, args):
+    def show_list(self, _udpSock, _entered_user_name, args):
         on_list = '----------- user in -----------\n'
-
-        for i, _user_name in enumerate(self.addr_pool):
-            on_list += "[SYSTEM] " + _user_name + ' logged in\n'
-
+        on_list += "[SYSTEM] " + _entered_user_name + ' logged in\n'
         on_list += '---------------------------------\n'
 
         for i, _user_name in enumerate(self.addr_pool):
