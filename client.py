@@ -6,8 +6,6 @@ import argparse
 
 class ChatClient():
     closed = False
-    udpPort = 1
-    udpPortAvailable = False
 
     def __init__(self, parent, args):
         super().__init__()
@@ -27,19 +25,9 @@ class ChatClient():
             clientSock.connect((destinationAddr, args.port)) # localhost
             clientSock.send(('###STARTCONNECT###' + args.username).encode('utf-8'))
 
-            while(True):
-                if(self.udpPortAvailable):
-                    udpSock = socket(AF_INET, SOCK_DGRAM)
-                    udpSock.bind(('', args.port + self.udpPort))
-                    _thread.start_new_thread(self.udp_thread, (parent, udpSock, args))
-                    break
-
-            # clientSock.recv(args.max_data_recv).decode('utf-8')
-
             _thread.start_new_thread(self.send_thread, (parent, clientSock, args))
             _thread.start_new_thread(self.recv_thread, (parent, clientSock, args))
             
-
             try:
                 while True:
                     time.sleep(1)
@@ -98,8 +86,6 @@ class ChatClient():
             else:
                 if data.find('###CONNECTSUCCESS###') != -1:
                     self.printmsg(parent, ('[SYSTEM] ' + args.username + ' is successfully connected'))
-                    self.udpPort = int(data.split('###CONNECTSUCCESS###')[1])
-                    self.udpPortAvailable = True
                 else:
                     self.printmsg(parent, data)
 
@@ -107,11 +93,6 @@ class ChatClient():
         _clientSock.close()
         self.closed = True
         sys.exit()
-    
-    def udp_thread(self, parent, _udpSock, args):
-        while True:
-            data, address = _udpSock.recvfrom(args.max_data_recv)
-            self.printmsg(parent, data)
 
     
     def printmsg(self, parent, msg):

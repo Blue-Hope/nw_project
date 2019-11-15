@@ -5,9 +5,7 @@ import argparse
 
 class ChatServer():
     connection_pool = {}
-    addr_pool = {}
     _render_msg = "init"
-    port_numbering = 1
 
     def __init__(self, parent, args):
         self.main(parent, args)
@@ -15,11 +13,13 @@ class ChatServer():
     def main(self, parent, args):
         try:
             serverSock = socket(AF_INET, SOCK_STREAM) # TCP
-            udpSock = socket(AF_INET, SOCK_DGRAM) # UDP
             serverSock.bind(('', args.port)) # localhost
             serverSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-
             serverSock.listen(args.backlog)
+            udpSock = socket(AF_INET, SOCK_DGRAM) # UDP
+            udpSock.bind(('', args.port + 1))
+            
+
         except OSError as e:
             if serverSock:
                 serverSock.close()
@@ -28,15 +28,16 @@ class ChatServer():
 
         print('..listening..')
 
+        _thread.start_new_thread(self.udp_thread, (parent, udpSock, args))
         while 1:
             connectionSock, client_addr = serverSock.accept()
             if(connectionSock):
-                _thread.start_new_thread(self.connection_thread, (parent, udpSock, connectionSock, client_addr, args))                
+                _thread.start_new_thread(self.connection_thread, (parent, connectionSock, client_addr, args))                
 
         serverSock.close()
         udpSock.close()
 
-    def connection_thread(self, parent, _udpSock, _connectionSock, _client_addr, args):
+    def connection_thread(self, parent, _connectionSock, _client_addr, args):
         username = ""
         while True:
             request = _connectionSock.recv(args.max_data_recv).decode('utf-8')
@@ -54,11 +55,7 @@ class ChatServer():
                 if request not in self.connection_pool:
                     username = request
                     self.connection_pool[username] = _connectionSock
-                    self.addr_pool[username] = (_client_addr[0], args.port + self.port_numbering)
-                    _connectionSock.send(('###CONNECTSUCCESS###' + str(self.port_numbering)).encode('utf-8'))
-                    print(args.port + self.port_numbering)
-                    self.port_numbering += 1
-                    self.show_list(_udpSock, username, args) # show all list of user
+                    _connectionSock.send(('###CONNECTSUCCESS###').encode('utf-8'))
                 else:
                     _connectionSock.send('###ERROR###the username already used by someone'.encode('utf-8'))
                     print('connection closed')
@@ -75,22 +72,22 @@ class ChatServer():
     def render_msg(self):
         return self._render_msg
     
-    def show_list(self, _udpSock, _entered_user_name, args):
-        on_list = '----------- user in -----------\n'
-        on_list += "[SYSTEM] " + _entered_user_name + ' logged in\n'
-        on_list += '---------------------------------\n'
-
-        for _user_name in self.addr_pool:
-            print(_user_name)
-            try:
-                # Send data
-                _udpSock.sendto(on_list.encode('utf-8'), self.addr_pool[_user_name])
-
-            except OSError as e:
-                if _udpSock:
-                    _udpSock.close()
-                print(e)
-                sys.exit(1)
+    def udp_thread(self, _udpSock, args):
+        while True:
+            data, address = _udpSock.recvfrom(args.max_data_recv)
+            # self.printmsg(parent, data.decode())
+            if(data.decode() == "###LIST###"):
+                try:
+                    on_list = '------------ user in ------------\n'
+                    for _user_name in self.connection_pool:
+                        on_list += '[' + _user_name + '] logged in\n'
+                        on_list += '---------------------------------\n'
+                        _udpSock.sendto(on_list.encode('utf-8'), address)
+                except OSError as e:
+                    if _udpSock:
+                        _udpSock.close()
+                    print(e)
+                    sys.exit(1)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
