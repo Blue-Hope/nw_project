@@ -27,18 +27,20 @@ class ChatClient():
 
             _thread.start_new_thread(self.send_thread, (parent, clientSock, args))
             _thread.start_new_thread(self.recv_thread, (parent, clientSock, args))
+
+            if args.cli == 1:
+                try:
+                    while True:
+                        time.sleep(1)
+                        if self.closed:
+                            break
+                        pass
+                except KeyboardInterrupt:
+                    clientSock.send('###EXIT###'.encode('utf-8'))
+                    self.printmsg(parent, '[SYSTEM] connection closed')
+                    clientSock.close()
+                    sys.exit()
             
-            try:
-                while True:
-                    time.sleep(1)
-                    if self.closed:
-                        break
-                    pass
-            except KeyboardInterrupt:
-                clientSock.send('###EXIT###'.encode('utf-8'))
-                self.printmsg(parent, '[SYSTEM] connection closed')
-                clientSock.close()
-                sys.exit()
                 
         except OSError as e:
             if(str(e).find("[Errno 61]") != -1):
@@ -57,7 +59,11 @@ class ChatClient():
                     elif input_str.find("###") != -1:
                         self.printmsg(parent, "you can't use ### in your input")
                     else:
-                        _clientSock.send(("###DATA###" + input_str.split(' ')[0] + "#" + input_str.split(' ', 1)[1]).encode('utf-8'))
+                        try:
+                            _clientSock.send(("###DATA###" + input_str.split(' ')[0] + "#" + input_str.split(' ', 1)[1]).encode('utf-8'))
+                            self.printmsg(parent, "[you] " + input_str.split(' ', 1)[1])
+                        except:
+                            self.printmsg(parent, "[SYSTEM] please enter (username + one blank + message)")
             else:
                 input_str = input("")
                 if input_str == 'exit':
@@ -88,6 +94,8 @@ class ChatClient():
             else:
                 if data.find('###CONNECTSUCCESS###') != -1:
                     self.printmsg(parent, ('[SYSTEM] ' + args.username + ' is successfully connected'))
+                    parent.pushButton.setText(args.username)
+                    parent.pushButton.setEnabled(False)
                 else:
                     self.printmsg(parent, data)
 
@@ -101,6 +109,7 @@ class ChatClient():
         print(msg)
         if(parent):
             parent.textBrowser.append(msg)
+            parent.textBrowser.verticalScrollBar().setValue(10000) #try input different high value
 
 
 if __name__ == "__main__":

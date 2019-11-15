@@ -3,10 +3,13 @@ import _thread
 from socket import *
 import server as serverModule
 import client as clientModule
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtGui import QTextCursor
 from PyQt5.QtCore import Qt, pyqtSlot
 
 import queue
+
+chatClient = object()
 
 class GUIWindow(object):
     user_id = 0
@@ -73,7 +76,7 @@ class GUIWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label.setText(_translate("MainWindow", "Chat Client v1.0"))
+        self.label.setText(_translate("MainWindow", "Chat Client v1.2"))
         self.textBrowser.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -97,6 +100,7 @@ class GUIWindow(object):
             self.statusbar.showMessage("set username")
         else:
             args.username = self.textEdit.toPlainText()
+            global chatClient
             chatClient = clientModule.ChatClient(self, args)
     
     def sendText(self):
@@ -117,6 +121,16 @@ class GUIWindow(object):
             self.textBrowser.append(data.decode())
         except OSError as e:
             print(e)
+          
+    
+def exitHandle():
+    print("EXT")
+    try:
+        chatClient.hello()
+        chatClient.offClient()
+    except AttributeError as e:
+        print("no")
+        pass
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -128,8 +142,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     app = QtWidgets.QApplication(sys.argv)
+    app.aboutToQuit.connect(exitHandle)
     MainWindow = QtWidgets.QMainWindow()
     ui = GUIWindow(args, MainWindow)
-    
     
     sys.exit(app.exec_())
