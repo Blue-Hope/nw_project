@@ -11,7 +11,7 @@ class ChatServer():
         self.main(parent, args)
 
     def __del__(self):
-        for username self.connection_pool:
+        for username in self.connection_pool:
             self.connection_pool[username].send('###CLOSE###'.encode('utf-8'))
             self.connection_pool[username].close()
 
