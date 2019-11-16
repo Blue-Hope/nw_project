@@ -10,15 +10,22 @@ class ChatServer():
     def __init__(self, parent, args):
         self.main(parent, args)
 
+    def __del__(self):
+        print("closing")
+        for username in self.connection_pool:
+            self.connection_pool[username].send('###CLOSE###'.encode('utf-8'))
+            self.connection_pool[username].close()
+
     def main(self, parent, args):
         try:
             serverSock = socket(AF_INET, SOCK_STREAM) # TCP
             serverSock.bind(('', args.port)) # localhost
             serverSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-
-            udpSock = socket(AF_INET, SOCK_DGRAM) # UDP
-
             serverSock.listen(args.backlog)
+            udpSock = socket(AF_INET, SOCK_DGRAM) # UDP
+            udpSock.bind(('', args.port + 1))
+
+
         except OSError as e:
             if serverSock:
                 serverSock.close()
@@ -27,6 +34,7 @@ class ChatServer():
 
         print('..listening..')
 
+        _thread.start_new_thread(self.udp_thread, (udpSock, args))
         while 1:
             connectionSock, client_addr = serverSock.accept()
             if(connectionSock):
@@ -42,6 +50,7 @@ class ChatServer():
 
             if(request != ''):
                 print(username, request)
+
             if(request == '###EXIT###'): # client exit handling
                 _connectionSock.close()
                 self.connection_pool.pop(username)
@@ -68,6 +77,24 @@ class ChatServer():
 
     def render_msg(self):
         return self._render_msg
+
+    def udp_thread(self, _udpSock, args):
+        while True:
+            data, address = _udpSock.recvfrom(args.max_data_recv)
+            print(data.decode())
+            # self.printmsg(parent, data.decode())
+            if(data.decode() == "###LIST###"):
+                try:
+                    on_list = '\n[SYSTEM] USER LIST -----------\n'
+                    for _user_name in self.connection_pool:
+                        on_list += '[' + _user_name + '] logged in\n'
+                    on_list += '---------------------------------'
+                    _udpSock.sendto(on_list.encode('utf-8'), address)
+                except OSError as e:
+                    if _udpSock:
+                        _udpSock.close()
+                    print(e)
+                    sys.exit(1)
 
     def show_list(self, _udpSock, args):
         on_list = '----------- user list -----------\n'
