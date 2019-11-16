@@ -1,7 +1,6 @@
 import os, sys, argparse, time
 import _thread
 from socket import *
-import server as serverModule
 import client as clientModule
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QTextCursor
