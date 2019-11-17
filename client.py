@@ -19,8 +19,9 @@ class ChatClient():
             if args.cli == 1:
                 destinationAddr = '127.0.0.1'
             else:
-                destinationAddr = '13.125.249.160'
+               destinationAddr = '13.125.249.160'
 
+            #destinationAddr = '127.0.0.1'
             clientSock = socket(AF_INET, SOCK_STREAM) # TCP
             clientSock.connect((destinationAddr, args.port)) # localhost
             clientSock.send(('###STARTCONNECT###' + args.username).encode('utf-8'))
@@ -64,7 +65,25 @@ class ChatClient():
                         self.printmsg(parent, "you can't use ### in your input")
                     else:
                         try:
-                            _clientSock.send(("###DATA###" + input_str.split(' ')[0] + "#" + input_str.split(' ', 1)[1]).encode('utf-8'))
+                            if((':' in input_str) & ('file' in input_str.split(' ')[1].split(':')[0])): # [username] file:[filename]
+                                file_path = os.getcwd() + '/' + input_str.split(':')[1]
+                                file_type = file_path.split('.')[-1]
+                                diff = args.max_data_recv - len(("###FILE###" + input_str.split(' ')[0] + "#" + file_type).encode('utf-8'))
+                                tmp = ''
+                                for i in range(diff):
+                                    tmp += '\0'
+                                _clientSock.send(("###FILE###" + input_str.split(' ')[0] + "#" + file_type + tmp).encode('utf-8'))
+                                length = os.path.getsize(file_path)
+                                _clientSock.send(self.convert_to_bytes(length)) # has to be 4 bytes
+                                f = open(file_path, 'rb')
+                                f_data = f.read(args.max_data_recv)
+                                while(f_data):
+                                    _clientSock.send(f_data)
+                                    f_data = f.read(args.max_data_recv)
+                                f.close()
+                                print('done')
+                            else: # DATA not file
+                                _clientSock.send(("###DATA###" +  input_str.split(' ')[0] + "#" + input_str.split(' ', 1)[1]).encode('utf-8'))
                             self.printmsg(parent, "[you] " + input_str.split(' ', 1)[1])
                         except:
                             self.printmsg(parent, "[SYSTEM] please enter (username + one blank + message)")
@@ -93,6 +112,24 @@ class ChatClient():
                 break
             elif(data.find('###WARNING###') != -1):
                 self.printmsg(parent, '[SYSTEM] ' + (data.split('###WARNING###')[1]))
+            elif(data.find('###FILE###') != -1):
+                file_type = data.split("###FILE###")[1].rstrip('\0')
+                size = _clientSock.recv(4) # assuming that the size won't be bigger then 1GB. get the size of recv file
+                size = self.bytes_to_number(size)
+                current_size = 0
+                buffer = b""
+                f = open('download.' + file_type, 'wb')
+                i = 1
+                while(current_size < size):
+                    data = _clientSock.recv(args.max_data_recv)
+                    if not data:
+                        break
+                    if len(data) + current_size > size:
+                        data = data[:size-current_size]
+                    current_size += len(data)
+                    f.write(data)
+                f.close()
+                print('did')
             elif(len(data) == 0):
                 break
             else:
@@ -121,12 +158,26 @@ class ChatClient():
             if(parent):
                 parent.textBrowser.append(data.decode('utf-8'))
 
+    def convert_to_bytes(self, no):
+        result = bytearray()
+        result.append(no & 255)
+        for i in range(3):
+            no = no >> 8
+            result.append(no & 255)
+        return result
+
+    def bytes_to_number(self, b):
+        res = 0
+        for i in range(4):
+            res += b[i] << (i*8)
+        return res
+
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--cli', type=int, default=0)
-    parser.add_argument('--max_data_recv', type=int, default=4096) # byte
+    parser.add_argument('--max_data_recv', type=int, default=1460) # byte
     parser.add_argument('--username', type=str, default='')
     parser.add_argument('--port', type=int, default=8081) # server port
     args = parser.parse_args()

@@ -66,6 +66,35 @@ class ChatServer():
                     _connectionSock.send('###ERROR###the username already used by someone'.encode('utf-8'))
                     print('connection closed')
                     break
+            elif(request.find("###FILE###") != -1):
+                request = request.split('###FILE###')[1].rstrip('\0')
+                if(request.split('#', 1)[0] not in self.connection_pool):
+                    _connectionSock.send(('###WARNING###' + (request.split('#', 1)[0]) + ' not connected').encode('utf-8'))
+                #elif request.split('#', 1)[0] == username:
+                 #   _connectionSock.send(('###WARNING###' + (request.split('#', 1)[0]) + ' is you').encode('utf-8'))
+                else:
+                    file_type = request.split('#')[1]
+                    diff = args.max_data_recv - len(('###FILE###' + file_type).encode('utf-8'))
+                    tmp = ''
+                    for i in range(diff): # send the data with fixed size of max_data_recv
+                        tmp += '\0'
+                    self.connection_pool[request.split('#', 1)[0]].send(('###FILE###' + file_type + tmp).encode('utf-8'))
+                    size = _connectionSock.recv(4) # assuming that the size won't be bigger then 1GB.
+                    self.connection_pool[request.split('#', 1)[0]].send(size)
+                    size = self.bytes_to_number(size)
+                    current_size = 0
+                    buffer = b""
+                    i = 1
+                    while(current_size < size):
+                        r = _connectionSock.recv(args.max_data_recv)
+                        if not r:
+                            break
+                        if len(r) + current_size > size:
+                            r = r[:size-current_size] # trim additional data
+                        buffer += r
+                        current_size += len(r)
+                        self.connection_pool[request.split('#', 1)[0]].send(r)
+                    print('done')
             elif(request.find('###DATA###') != -1): # else meet
                 request = request.split('###DATA###')[1]
                 if(request.split('#', 1)[0] not in self.connection_pool):
@@ -122,11 +151,16 @@ class ChatServer():
                 print(e)
                 sys.exit(1)
 
+    def bytes_to_number(self, b):
+        res = 0
+        for i in range(4):
+            res += b[i] << (i*8)
+        return res
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--backlog', type=int, default=50) # how many pending connection queue will hold
-    parser.add_argument('--max_data_recv', type=int, default=4096) # byte
+    parser.add_argument('--max_data_recv', type=int, default=1460) # byte
     parser.add_argument('--port', type=int, default=8081) # server port
     args = parser.parse_args()
     chatServer = ChatServer(None, args)

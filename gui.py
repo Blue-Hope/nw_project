@@ -88,10 +88,10 @@ class GUIWindow(object):
 
     def spinBoxChanged(self):
         self.user_id = self.spinBox.value()
-    
+
     def operateClient(self):
         _thread.start_new_thread(self.operateClientThread, ())
-    
+
     def operateClientThread(self):
         args.user = int(self.user_id)
         args.cli = 0
@@ -101,7 +101,7 @@ class GUIWindow(object):
             args.username = self.textEdit.toPlainText()
             global chatClient
             chatClient = clientModule.ChatClient(self, args)
-    
+
     def sendText(self):
         message = self.textEdit_2.toPlainText()
         if(message == ''):
@@ -109,7 +109,7 @@ class GUIWindow(object):
         else:
             self.messageQueue.put(message)
             self.textEdit_2.setText('')
-        
+
     def listLookUp(self):
         try:
             udpSock = socket(AF_INET, SOCK_DGRAM) # UDP
@@ -122,6 +122,8 @@ class GUIWindow(object):
             print(e)
           
     
+
+
 def exitHandle():
     print("EXT")
     try:
@@ -135,7 +137,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--client', action='store_true', default=False)
     parser.add_argument('--backlog', type=int, default=50) # how many pending connection queue will hold
-    parser.add_argument('--max_data_recv', type=int, default=4096) # byte
+    parser.add_argument('--max_data_recv', type=int, default=1460) # byte
     parser.add_argument('--port', type=int, default=8081) # server port
     parser.add_argument('--user', type=int, default=-1)
     args = parser.parse_args()
@@ -144,5 +146,5 @@ if __name__ == "__main__":
     app.aboutToQuit.connect(exitHandle)
     MainWindow = QtWidgets.QMainWindow()
     ui = GUIWindow(args, MainWindow)
-    
+
     sys.exit(app.exec_())
