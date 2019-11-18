@@ -6,6 +6,7 @@ import argparse
 
 class ChatClient():
     closed = False
+    killself = False
 
     def __init__(self, parent, args):
         super().__init__()
@@ -19,19 +20,14 @@ class ChatClient():
             if args.cli == 1:
                 destinationAddr = '127.0.0.1'
             else:
-               destinationAddr = '13.125.249.160'
+                destinationAddr = '13.125.249.160'
 
-            #destinationAddr = '127.0.0.1'
             clientSock = socket(AF_INET, SOCK_STREAM) # TCP
             clientSock.connect((destinationAddr, args.port)) # localhost
             clientSock.send(('###STARTCONNECT###' + args.username).encode('utf-8'))
 
-            udpSock = socket(AF_INET, SOCK_DGRAM)
-            udpSock.bind(('', args.port + args.user))
-
             _thread.start_new_thread(self.send_thread, (parent, clientSock, args))
             _thread.start_new_thread(self.recv_thread, (parent, clientSock, args))
-            _thread.start_new_thread(self.udp_thread, (parent, udpSock, args))
 
             if args.cli == 1:
                 try:
@@ -39,6 +35,8 @@ class ChatClient():
                         time.sleep(1)
                         if self.closed:
                             break
+                        if killself:
+                            del self
                         pass
                 except KeyboardInterrupt:
                     clientSock.send('###EXIT###'.encode('utf-8'))
@@ -57,36 +55,43 @@ class ChatClient():
         while True:
             if(parent):
                 if not parent.messageQueue.qsize():
-                    input_str = parent.messageQueue.get()
-                    if input_str == 'exit':
-                        _clientSock.send('###EXIT###'.encode('utf-8'))
-                        break
-                    elif input_str.find("###") != -1:
-                        self.printmsg(parent, "you can't use ### in your input")
-                    else:
+                    input_data = parent.messageQueue.get()
+                    input_dest = input_data[0]
+                    input_str = input_data[1]
+                    input_type = input_data[2]
+                    if input_type == 0: #msg
+                        if input_str == 'exit':
+                            _clientSock.send('###EXIT###'.encode('utf-8'))
+                            break
+                        elif input_str.find("###") != -1:
+                            self.printmsg(parent, "[SYSTEM] you can't use ### in your input")
+                        else:
+                            try:
+                                _clientSock.send(("###DATA###" +  input_dest + "#" + input_str).encode('utf-8'))
+                                self.printmsg(parent, "[you -> " + input_dest + "] " + input_str)
+                            except:
+                                self.printmsg(parent, "[SYSTEM] error in message transfer")
+                    elif input_type == 1: #file
                         try:
-                            if((':' in input_str) & ('file' in input_str.split(' ')[1].split(':')[0])): # [username] file:[filename]
-                                file_path = os.getcwd() + '/' + input_str.split(':')[1]
-                                file_type = file_path.split('.')[-1]
-                                diff = args.max_data_recv - len(("###FILE###" + input_str.split(' ')[0] + "#" + file_type).encode('utf-8'))
-                                tmp = ''
-                                for i in range(diff):
-                                    tmp += '\0'
-                                _clientSock.send(("###FILE###" + input_str.split(' ')[0] + "#" + file_type + tmp).encode('utf-8'))
-                                length = os.path.getsize(file_path)
-                                _clientSock.send(self.convert_to_bytes(length)) # has to be 4 bytes
-                                f = open(file_path, 'rb')
+                            file_path = input_str
+                            file_type = file_path.split('.')[-1]
+                            diff = args.max_data_recv - len(("###FILE###" + input_dest + "#" + file_type).encode('utf-8'))
+                            tmp = ''
+                            for i in range(diff):
+                                tmp += '\0'
+                            _clientSock.send(("###FILE###" + input_dest + "#" + file_type + tmp).encode('utf-8'))
+                            length = os.path.getsize(file_path)
+                            _clientSock.send(self.convert_to_bytes(length)) # has to be 4 bytes
+                            f = open(file_path, 'rb')
+                            f_data = f.read(args.max_data_recv)
+                            while(f_data):
+                                _clientSock.send(f_data)
                                 f_data = f.read(args.max_data_recv)
-                                while(f_data):
-                                    _clientSock.send(f_data)
-                                    f_data = f.read(args.max_data_recv)
-                                f.close()
-                                print('done')
-                            else: # DATA not file
-                                _clientSock.send(("###DATA###" +  input_str.split(' ')[0] + "#" + input_str.split(' ', 1)[1]).encode('utf-8'))
-                            self.printmsg(parent, "[you] " + input_str.split(' ', 1)[1])
+                            f.close()
+                            self.printmsg(parent, "[you -> " + input_dest + "] " + input_str)
                         except:
-                            self.printmsg(parent, "[SYSTEM] please enter (username + one blank + message)")
+                            self.printmsg(parent, "[SYSTEM] error in file transfer")
+
             else:
                 input_str = input("")
                 if input_str == 'exit':
@@ -104,12 +109,14 @@ class ChatClient():
     def recv_thread(self, parent, _clientSock, args):
         while True:
             try:
-                data = _clientSock.recv(args.max_data_recv).decode('utf-8')
+                data = _clientSock.recv(args.max_data_recv).decode()
             except OSError as e:
                 break
+            print(data)
             if(data.find('###ERROR###') != -1):
                 self.printmsg(parent, '[SYSTEM] ' + (data.split('###ERROR###')[1]))
-                break
+                self.killself = True
+                # break
             elif(data.find('###WARNING###') != -1):
                 self.printmsg(parent, '[SYSTEM] ' + (data.split('###WARNING###')[1]))
             elif(data.find('###FILE###') != -1):
@@ -134,6 +141,8 @@ class ChatClient():
                 break
             else:
                 if data.find('###CONNECTSUCCESS###') != -1:
+                    parent.clientOK = True
+                    print("data gotten")
                     self.printmsg(parent, ('[SYSTEM] ' + args.username + ' is successfully connected'))
                     parent.pushButton.setText(args.username)
                     parent.pushButton.setEnabled(False)
@@ -151,12 +160,6 @@ class ChatClient():
         if(parent):
             parent.textBrowser.append(msg)
             parent.textBrowser.verticalScrollBar().setValue(10000) #try input different high value
-
-    def udp_thread(self, parent, _udpSock, args):
-        while True:
-            data, address = _udpSock.recvfrom(args.max_data_recv)
-            if(parent):
-                parent.textBrowser.append(data.decode('utf-8'))
 
     def convert_to_bytes(self, no):
         result = bytearray()
