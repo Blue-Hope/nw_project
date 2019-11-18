@@ -114,42 +114,17 @@ class ChatServer():
             # self.printmsg(parent, data.decode())
             if(data.decode() == "###LIST###"):
                 try:
-                    on_list = '\n[SYSTEM] USER LIST -----------\n'
+                    on_list = ''
                     for _user_name in self.connection_pool:
-                        on_list += '[' + _user_name + '] logged in\n'
-                    on_list += '---------------------------------'
+                        on_list += _user_name + '\n'
+                    if on_list == '':
+                        on_list = "empty"
                     _udpSock.sendto(on_list.encode('utf-8'), address)
                 except OSError as e:
                     if _udpSock:
                         _udpSock.close()
                     print(e)
                     sys.exit(1)
-
-    def show_list(self, _udpSock, args):
-        on_list = '----------- user list -----------\n'
-        for i in range(args.backlog):
-            if(self.connection_pool[i]!=None):
-                on_list += str(i) + " : " +self.user_list[i] + '\n'
-
-        on_list += '---------------------------------\n'
-
-        for i in range(args.backlog):
-            try:
-                # Send data
-                #print('sending')
-                if(self.addr_list[i] != None):
-                    _udpSock.sendto(on_list.encode('utf-8'), self.addr_list[i])
-
-                # Receive response
-                #print('waiting to receive')
-                #data, server = udpSock.recvfrom(4096)
-                #print('received {!r}'.format(data))
-
-            except OSError as e:
-                if _udpSock:
-                    _udpSock.close()
-                print(e)
-                sys.exit(1)
 
     def bytes_to_number(self, b):
         res = 0
