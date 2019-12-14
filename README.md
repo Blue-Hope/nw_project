@@ -31,3 +31,7 @@ https://github.com/blue-hope/simple_proxy_server
 - no gui option for server.py
 - user username instead of user_id
 - gui user_id feature not yet deleted
+
+> v1.2(19.12.?)
+- file transfer applied
+- gui username feature deployed
