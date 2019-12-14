@@ -135,7 +135,7 @@ class ChatServer():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--backlog', type=int, default=50) # how many pending connection queue will hold
-    parser.add_argument('--max_data_recv', type=int, default=1460) # byte
+    parser.add_argument('--max_data_recv', type=int, default=1024) # byte
     parser.add_argument('--port', type=int, default=8081) # server port
     args = parser.parse_args()
     chatServer = ChatServer(None, args)

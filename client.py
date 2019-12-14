@@ -63,8 +63,8 @@ class ChatClient():
                         if input_str == 'exit':
                             _clientSock.send('###EXIT###'.encode('utf-8'))
                             break
-                        elif input_str.find("###") != -1:
-                            self.printmsg(parent, "[SYSTEM] you can't use ### in your input")
+                        # elif input_str.find("###") != -1:
+                        #     self.printmsg(parent, "[SYSTEM] you can't use ### in your input")
                         else:
                             try:
                                 _clientSock.send(("###DATA###" +  input_dest + "#" + input_str).encode('utf-8'))
@@ -109,9 +109,13 @@ class ChatClient():
     def recv_thread(self, parent, _clientSock, args):
         while True:
             try:
-                data = _clientSock.recv(args.max_data_recv).decode()
+                tmpdata = _clientSock.recv(args.max_data_recv)
+                data = tmpdata.decode()
             except OSError as e:
-                break
+                if(str(e).find("UnicodeDecodeError") != -1):
+                    data = tmpdata
+                else:
+                    break
             print(data)
             if(data.find('###ERROR###') != -1):
                 self.printmsg(parent, '[SYSTEM] ' + (data.split('###ERROR###')[1]))
@@ -180,7 +184,7 @@ class ChatClient():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--cli', type=int, default=0)
-    parser.add_argument('--max_data_recv', type=int, default=1460) # byte
+    parser.add_argument('--max_data_recv', type=int, default=1024) # byte
     parser.add_argument('--username', type=str, default='')
     parser.add_argument('--port', type=int, default=8081) # server port
     args = parser.parse_args()
