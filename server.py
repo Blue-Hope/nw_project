@@ -46,7 +46,10 @@ class ChatServer():
     def connection_thread(self, parent, _connectionSock, _client_addr, args):
         username = ""
         while True:
-            request = _connectionSock.recv(args.max_data_recv).decode()
+            try:
+                request = _connectionSock.recv(args.max_data_recv).decode()
+            except UnicodeDecodeError as e:
+                continue
 
             if(request != ''):
                 print(username, request)
