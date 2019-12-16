@@ -40,7 +40,7 @@ class GUIWindow(object):
         self.textBrowser.setGeometry(QtCore.QRect(10, 80, 771, 481))
         self.textBrowser.setObjectName("textBrowser")
         self.textEdit = QtWidgets.QTextEdit(self.centralwidget) #username
-        self.textEdit.setGeometry(QtCore.QRect(90, 40, 151, 31))
+        self.textEdit.setGeometry(QtCore.QRect(110, 40, 151, 31))
         self.textEdit.setObjectName("textEdit")
         self.label_3 = QtWidgets.QLabel(self.centralwidget)
         self.label_3.setGeometry(QtCore.QRect(10, 40, 101, 21))
@@ -90,7 +90,7 @@ class GUIWindow(object):
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.mainwindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label.setText(_translate("MainWindow", "Chat Client v1.2"))
+        self.label.setText(_translate("MainWindow", "Chat Client"))
         self.textBrowser.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
