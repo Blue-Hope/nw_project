@@ -111,11 +111,8 @@ class ChatClient():
             try:
                 tmpdata = _clientSock.recv(args.max_data_recv)
                 data = tmpdata.decode()
-            except OSError as e:
-                if(str(e).find("UnicodeDecodeError") != -1):
-                    data = tmpdata
-                else:
-                    break
+            except UnicodeDecodeError as e:
+                continue
             print(data)
             if(data.find('###ERROR###') != -1):
                 self.printmsg(parent, '[SYSTEM] ' + (data.split('###ERROR###')[1]))
