@@ -46,7 +46,7 @@ class GUIWindow(object):
         self.label_3.setGeometry(QtCore.QRect(10, 40, 101, 21))
         self.label_3.setObjectName("label_3")
         self.textEdit_2 = QtWidgets.QTextEdit(self.centralwidget) #message
-        self.textEdit_2.setGeometry(QtCore.QRect(110, 570, 581, 31))
+        self.textEdit_2.setGeometry(QtCore.QRect(110, 570, 521, 31))
         self.textEdit_2.setObjectName("textEdit_2")
         self.textEdit_2.setReadOnly(True)
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -61,10 +61,10 @@ class GUIWindow(object):
         self.pushButton_3.setGeometry(QtCore.QRect(560, 30, 113, 51))
         self.pushButton_3.setObjectName("pushButton")
         self.pushButton_3.clicked.connect(self.listLookUp)
-        # self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
-        # self.pushButton_4.setGeometry(QtCore.QRect(640, 565, 75, 41))
-        # self.pushButton_4.setObjectName("pushButton_4")
-        # self.pushButton_4.clicked.connect(self.sendFile)
+        self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_4.setGeometry(QtCore.QRect(640, 565, 75, 41))
+        self.pushButton_4.setObjectName("pushButton_4")
+        self.pushButton_4.clicked.connect(self.sendFile)
         self.mainwindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(self.mainwindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 794, 22))
@@ -100,7 +100,7 @@ class GUIWindow(object):
         self.pushButton.setText(_translate("MainWindow", "Enter"))
         self.pushButton_2.setText(_translate("MainWindow", "Send"))
         self.pushButton_3.setText(_translate("MainWindow", "List"))
-        # self.pushButton_4.setText(_translate("MainWindow", "File"))
+        self.pushButton_4.setText(_translate("MainWindow", "File"))
 
     def spinBoxChanged(self):
         self.user_id = self.spinBox.value()
