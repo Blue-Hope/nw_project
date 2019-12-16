@@ -17,6 +17,9 @@ server
 client
 ```python3 client.py --cli 1 --username #{username} [--port #{}] [--backlog #{}] [--max_data_recv #{}]```
 
+#### exe file
+```pyinstaller gui.py --hidden-import PyQt5.sip -y --onedir --onefile```
+
 * * *
 ## Reference
 https://github.com/blue-hope/simple_proxy_server
